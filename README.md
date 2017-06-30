@@ -113,13 +113,13 @@ Below of three examples of vehicle detected with its bounding boxes.
 
 ### Video Implementation
 
-The link to the project video output[link to my video result](./project_video_out.mp4)
+The link to the project video output [Link to Video Result](./project_video_out.mp4)
 
 The final implementation of the entire pipeline is implemented as python package with serveral class definition in the folder `vehicleDetector`. The package has `Detector` class and it can be generalised to be used with more updated classifier used in the future. This module also contains a box class which has double ended queue that holds the old frame detected boxes and it is used in the smoothing operation of the bound boxes for detected vehicle.
 
 ### Harder Challenge
 
-In the harder challenge the lane detection pipeline and vehicle detection pipeline are combined together. The link to the video output[Link to combined result](./project_video_combined.mp4)
+In the harder challenge the lane detection pipeline and vehicle detection pipeline are combined together. The link to the video output[ Link to combined video result](./project_video_combined.mp4)
 
 ###Discussion
 
