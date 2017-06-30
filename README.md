@@ -1,12 +1,15 @@
 [//]: # (Image References)
 [image1]: ./output_images/draw_rectangles.png
-[image3]: ./output_images/sampleset.jpg
-[image4]: ./output_images/HOG_Vehicle.jpg
+[image3]: ./output_images/sampleset.png
+[image4]: ./output_images/HOG_Vehicle.png
 [image5]: ./output_images/HOG_nonvehicle.png
 [image6]: ./output_images/feataure_scaling.png
 [image7]: ./output_images/confusionmatrix.png
 [image8]: ./output_images/slidingwindow.png
-[image9]: ./output_images/heatmap.png
+[image9]: ./output_images/FalsePositive.png
+[image10]: ./output_images/test1.png
+[image11]: ./output_images/test2.png
+[image12]: ./output_images/test3.png
 [video1]: ./project_video.mp4
 
 # Vehicle Detection
@@ -36,7 +39,7 @@ A function to draw rectangle is defined in the function `draw_rectangle` in cell
 
 ### Histogram of Oriented Gradients (HOG)
 
-The HOG values of given image can act as a unique signature in identifying a specific appearance of a feature like car. The function to determine the hog feature of an image is defined by the fucntion `get_hog_features` in the notebook cell 7 and 8. The following is an example of HOG image of a car and not a car.
+The HOG values of given image can act as a unique signature in identifying a specific appearance of a feature like car. The function to determine the hog feature of an image is defined by the fucntion `extract_hog_by_skimage` and `extract_hog_by_opencv` in the notebook cells 7, 8, 14, 15, 18, 21 and 22. The following is an example of HOG image of a car and not a car.
 
 ![HOG of a car][image4]
 
@@ -62,52 +65,61 @@ After finalising on the parameter, HOG extraction using open CV hog function was
 | 0              | YUV         | 9           | 8            | 2              | ALL     | 5.052052     |
 | 1              | YUV         | 9           | 16           | 2              | ALL     | 6.059657     |
 
-In the final pipeline openCV HOG method was used to extract the features.
+In the final pipeline openCV HOG method was used to extract the features with "ALL" channels as more information could be extracted our of it.
 
-####3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
+### Training a Classifier
 
-I trained a linear SVM using...
+In order to train the dataset on a classfier feature normalisation was performed using the `sklearn.preprocessing.StandardScaler`. The scaler normalised the data to zero mean and unit variance. This helps the optimiser in a classifier to converge correctly.
 
-###Sliding Window Search
+Below are images for scaled feature set.
 
-####1. Describe how (and identify where in your code) you implemented a sliding window search.  How did you decide what scales to search and how much to overlap windows?
+![Scaled Feature][image6]
 
-I decided to search random window positions at random scales all over the image and came up with this (ok just kidding I didn't actually ;):
+2 different classifiers where trained to see the peformance of the predictions.
+- LinearSVC
+- MultiLayer Perceptron
 
-![alt text][image3]
+The function defintions can be found in the notebook cells 23 to 33.
 
-####2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
+The performance of MLP was significantly better when compared to SVM. The confusion matric for the MLP can be found below.
 
-Ultimately I searched on two scales using YCrCb 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.  Here are some example images:
+![MLP Confusion Matrix][image7]
 
-![alt text][image4]
----
+The classifier that was fit with training data and scaler functions are pickled as files and can be loaded for the pipeline search.
+
+### Sliding Window Search
+
+The sliding window search is implement in the function `slide_window`. The orginal function was adapted to cover the region with different scaling of the windows. Several window sizes and overlap percentages was explored. The functions are in notebook cells 33 to 39. An example of the sliding window applied to an image below. 
+
+![Sliding Window][image8]
+
+### False Positive elimination
+
+The original detected windows are used create masked heatmap to identify the vehicle position. `scipy.ndimage.measurements.label()` was used to isolate the induvisual blobs. A throshold was applied to eliminate false positve idnetifications. A bounding box was constructed around each blob.
+
+Below is an image of false positive heat map and elminated equivalent of the same
+
+![False Positve Heat Map][image9]
+
+I also restriced the amount of false positve by selecting a specific softmax probability of the MLP classifier to a conservative value.
+
+Below of three examples of vehicle detected with its bounding boxes.
+
+![Vehicle Detected][image10]
+
+![Vehicle Detected][image11]
+
+![Vehicle Detected][image12]
 
 ### Video Implementation
 
-####1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (somewhat wobbly or unstable bounding boxes are ok as long as you are identifying the vehicles most of the time with minimal false positives.)
-Here's a [link to my video result](./project_video.mp4)
+The link to the project video output[link to my video result](./project_video_out.mp4)
 
+The final implementation of the entire pipeline is implemented as python package with serveral class definition in the folder `vehicleDetector`. The package has `Detector` class and it can be generalised to be used with more updated classifier used in the future. This module also contains a box class which has double ended queue that holds the old frame detected boxes and it is used in the smoothing operation of the bound boxes for detected vehicle.
 
-####2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
+### Harder Challenge
 
-I recorded the positions of positive detections in each frame of the video.  From the positive detections I created a heatmap and then thresholded that map to identify vehicle positions.  I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap.  I then assumed each blob corresponded to a vehicle.  I constructed bounding boxes to cover the area of each blob detected.  
-
-Here's an example result showing the heatmap from a series of frames of video, the result of `scipy.ndimage.measurements.label()` and the bounding boxes then overlaid on the last frame of video:
-
-### Here are six frames and their corresponding heatmaps:
-
-![alt text][image5]
-
-### Here is the output of `scipy.ndimage.measurements.label()` on the integrated heatmap from all six frames:
-![alt text][image6]
-
-### Here the resulting bounding boxes are drawn onto the last frame in the series:
-![alt text][image7]
-
-
-
----
+In the harder challenge the lane detection pipeline and vehicle detection pipeline are combined together. The link to the video output[Link to combined result](./project_video_combined.mp4)
 
 ###Discussion
 
