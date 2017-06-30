@@ -58,7 +58,9 @@ A different combination of HOG parameter were evaluated as shown below in the ta
 | 6             | YUV         | 9           | 16           | 2              | 1       | 16.791569    |
 | 7             | YUV         | 9           | 16           | 2              | 2       | 17.329109    |
 
+
 After finalising on the parameter, HOG extraction using open CV hog function was also evaluated. The extraction time of the openCV function was significantly faster for the same requirements.
+
 
 | Configurations | color space | orientation | pix per cell | cell per block | channel | Extract_Time |
 |----------------|-------------|-------------|--------------|----------------|---------|--------------|
@@ -69,9 +71,7 @@ In the final pipeline openCV HOG method was used to extract the features with "A
 
 ### Training a Classifier
 
-In order to train the dataset on a classfier feature normalisation was performed using the `sklearn.preprocessing.StandardScaler`. The scaler normalised the data to zero mean and unit variance. This helps the optimiser in a classifier to converge correctly.
-
-Below are images for scaled feature set.
+The given feature set ylabels are classified in to two types cars and non-cars. The Ylables are given a value of 1 for cars and 0 for non-cars. The sklearn `train_test_split` functions is used to spilt the data and into training and test sets. In order to train the dataset on a classfier feature normalisation was performed using the `sklearn.preprocessing.StandardScaler`. The scaler normalised the data to zero mean and unit variance. This helps the optimiser in a classifier to converge correctly. Below are the images for scaled feature set.
 
 ![Scaled Feature][image6]
 
@@ -79,13 +79,11 @@ Below are images for scaled feature set.
 - LinearSVC
 - MultiLayer Perceptron
 
-The function defintions can be found in the notebook cells 23 to 33.
-
-The performance of MLP was significantly better when compared to SVM. The confusion matric for the MLP can be found below.
+The function defintions can be found in the notebook cells 23 to 33. The performance of MLP was significantly better when compared to SVM. The confusion matric for the MLP can be found below.
 
 ![MLP Confusion Matrix][image7]
 
-The classifier that was fit with training data and scaler functions are pickled as files and can be loaded for the pipeline search.
+The classifier that was fit with training data and scaler functions are pickled as files and can be loaded for the pipeline search. In the final pipeline the MLP classifier was used based on the accuracy and the speed for predicting one test image sample was not much differnt between the LinearSVC or MLP.
 
 ### Sliding Window Search
 
@@ -95,15 +93,11 @@ The sliding window search is implement in the function `slide_window`. The orgin
 
 ### False Positive elimination
 
-The original detected windows are used create masked heatmap to identify the vehicle position. `scipy.ndimage.measurements.label()` was used to isolate the induvisual blobs. A throshold was applied to eliminate false positve idnetifications. A bounding box was constructed around each blob.
-
-Below is an image of false positive heat map and elminated equivalent of the same
+The original detected windows are used create masked heatmap to identify the vehicle position. `scipy.ndimage.measurements.label()` was used to isolate the induvisual blobs. A throshold was applied to eliminate false positve idnetifications. A bounding box was constructed around each blob. Below is an image of false positive heat map and elminated equivalent of the same
 
 ![False Positve Heat Map][image9]
 
-I also restriced the amount of false positve by selecting a specific softmax probability of the MLP classifier to a conservative value.
-
-Below of three examples of vehicle detected with its bounding boxes.
+Ihe amount of false positve detections are also reduced by selecting a specific softmax probability of the MLP classifier to a conservative value to be considered as a vehicle. Below of three examples of vehicle detected with its bounding boxes.
 
 ![Vehicle Detected][image10]
 
@@ -121,9 +115,13 @@ The final implementation of the entire pipeline is implemented as python package
 
 In the harder challenge the lane detection pipeline and vehicle detection pipeline are combined together. The link to the video output[ Link to combined video result](./project_video_combined.mp4)
 
-###Discussion
+### Discussion
 
-####1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
+The following are the situations that the pipeline might not be robust,
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+- The dataset contains only cars and non cars, in reality the road is shared by several differnt vehicles. The pipeline will fail to detect if a new vehicle is present in the lane. 
+- When a large dataset is used to train the classifier much better detection can be achieved, but it will be a balance of detection speed and accuracy. may be building a better classifer based on conv net using tensor flow might help to improve peformance without compromise on speed.
+- In adverse weather conditions the images will appear blurry and can change the Hog value of the features. A much larger dataset with varying weather and lightining conditions can be used as input or image augumentation can be used as input to improve the detection.
+- There are edge case situation such as identifying vehicle in deep curves, vehicle being towed facing opposite direction etc. Possible peforming a sensor fusion with radar data might help.
+- While considering a real time implementation a balance between accuracy and speed has to be achieved.
 
