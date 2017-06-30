@@ -1,59 +1,68 @@
-##Writeup Template
-###You can use this file as a template for your writeup if you want to submit it as a markdown file, but feel free to use some other method and submit a pdf if you prefer.
+[//]: # (Image References)
+[image1]: ./output_images/draw_rectangles.png
+[image3]: ./output_images/sampleset.jpg
+[image4]: ./output_images/HOG_Vehicle.jpg
+[image5]: ./output_images/HOG_nonvehicle.png
+[image6]: ./output_images/feataure_scaling.png
+[image7]: ./output_images/confusionmatrix.png
+[image8]: ./output_images/slidingwindow.png
+[image9]: ./output_images/heatmap.png
+[video1]: ./project_video.mp4
 
----
+# Vehicle Detection
 
-**Vehicle Detection Project**
+This project consists of constructing a pipeline needed to identify vehicles in a video stream.
 
 The goals / steps of this project are the following:
 
-* Perform a Histogram of Oriented Gradients (HOG) feature extraction on a labeled training set of images and train a classifier Linear SVM classifier
-* Optionally, you can also apply a color transform and append binned color features, as well as histograms of color, to your HOG feature vector. 
-* Note: for those first two steps don't forget to normalize your features and randomize a selection for training and testing.
-* Implement a sliding-window technique and use your trained classifier to search for vehicles in images.
-* Run your pipeline on a video stream (start with the test_video.mp4 and later implement on full project_video.mp4) and create a heat map of recurring detections frame by frame to reject outliers and follow detected vehicles.
-* Estimate a bounding box for vehicles detected.
-
-[//]: # (Image References)
-[image1]: ./examples/car_not_car.png
-[image2]: ./examples/HOG_example.jpg
-[image3]: ./examples/sliding_windows.jpg
-[image4]: ./examples/sliding_window.jpg
-[image5]: ./examples/bboxes_and_heat.png
-[image6]: ./examples/labels_map.png
-[image7]: ./examples/output_bboxes.png
-[video1]: ./project_video.mp4
-
-## [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
-###Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
-
----
-###Writeup / README
-
-####1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  You can submit your writeup as markdown or pdf.  [Here](https://github.com/udacity/CarND-Vehicle-Detection/blob/master/writeup_template.md) is a template writeup for this project you can use as a guide and a starting point.  
-
-You're reading it!
-
-###Histogram of Oriented Gradients (HOG)
-
-####1. Explain how (and identify where in your code) you extracted HOG features from the training images.
-
-The code for this step is contained in the first code cell of the IPython notebook (or in lines # through # of the file called `some_file.py`).  
-
-I started by reading in all the `vehicle` and `non-vehicle` images.  Here is an example of one of each of the `vehicle` and `non-vehicle` classes:
-
-![alt text][image1]
-
-I then explored different color spaces and different `skimage.hog()` parameters (`orientations`, `pixels_per_cell`, and `cells_per_block`).  I grabbed random images from each of the two classes and displayed them to get a feel for what the `skimage.hog()` output looks like.
-
-Here is an example using the `YCrCb` color space and HOG parameters of `orientations=8`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)`:
+- Explore and understand the given dataset of car and not a car image dataset.
+- Perform a Histogram of Oriented Gradients (HOG) feature extraction on a labeled training set of images.
+- Train a classifier using the dataset to determine if a given image is car or not a car.
+- Define a pipeline to process a given image to identify if it has a car.
+- Estimate a bounding box for the vehicles detected.
+- Reduce the false positives in the identification.
 
 
-![alt text][image2]
+### Explore the dataset
 
-####2. Explain how you settled on your final choice of HOG parameters.
+As a first step i tried to explore and understand what does the given dataset contains, size of the images, visualise a few samples of car and not a car images. The following is a plot to show the samples of the images.
 
-I tried various combinations of parameters and...
+![Sample Dataset][image3]
+
+A function to draw rectangle is defined in the function `draw_rectangle` in cell 11. The following is an example of box around a given region.
+
+![Draw Rectangle][image1]
+
+
+### Histogram of Oriented Gradients (HOG)
+
+The HOG values of given image can act as a unique signature in identifying a specific appearance of a feature like car. The function to determine the hog feature of an image is defined by the fucntion `get_hog_features` in the notebook cell 7 and 8. The following is an example of HOG image of a car and not a car.
+
+![HOG of a car][image4]
+
+![HOG of a Not a car][image5]
+
+A different combination of HOG parameter were evaluated as shown below in the table.
+
+| Configuration | color space | orientation | pix per cell | cell per block | channel | Extract_Time |
+|---------------|-------------|-------------|--------------|----------------|---------|--------------|
+| 0             | YUV         | 9           | 8            | 2              | ALL     | 84.154645    |
+| 1             | YUV         | 9           | 8            | 2              | 0       | 26.747634    |
+| 2             | YUV         | 9           | 8            | 2              | 1       | 27.399855    |
+| 3             | YUV         | 9           | 8            | 2              | 2       | 27.281057    |
+| 4             | YUV         | 9           | 16           | 2              | ALL     | 49.047909    |
+| 5             | YUV         | 9           | 16           | 2              | 0       | 16.573284    |
+| 6             | YUV         | 9           | 16           | 2              | 1       | 16.791569    |
+| 7             | YUV         | 9           | 16           | 2              | 2       | 17.329109    |
+
+After finalising on the parameter, HOG extraction using open CV hog function was also evaluated. The extraction time of the openCV function was significantly faster for the same requirements.
+
+| Configurations | color space | orientation | pix per cell | cell per block | channel | Extract_Time |
+|----------------|-------------|-------------|--------------|----------------|---------|--------------|
+| 0              | YUV         | 9           | 8            | 2              | ALL     | 5.052052     |
+| 1              | YUV         | 9           | 16           | 2              | ALL     | 6.059657     |
+
+In the final pipeline openCV HOG method was used to extract the features.
 
 ####3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
 
